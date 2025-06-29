@@ -20,19 +20,8 @@
 npm install takusan23/himari-webm-kotlin-multiplatform-npm-library
 ```
 
-今のところ、以下の組み合わせて利用できることを確認しました
-- `React`+`Vite`
-- `Next.js`の`サーバーコンポーネント`
-- `Next.js`の`クライアントコンポーネント`（ひと手間必要です）
-
-### Next.js で使う場合
-サーバーコンポーネントの場合は問題なく利用できます。  
-クライアントコンポーネントでこのライブラリを利用する場合、必ずクライアント側で読み込まれるように遅延ロードする必要があります。多分。
-
-よって、` import { ... } from "himari-webm-kotlin-multiplatform" `は使えず、  
-` const { ... } = await import("himari-webm-kotlin-multiplatform") `をクライアントだけで呼び出す必要があります。
-
-`useEffect()`や`clickHandler`なんかはクライアント側なので、ここでロードすればよいはず
+詳しくはそっちで  
+https://github.com/takusan23/himari-webm-kotlin-multiplatform-npm-library
 
 # 環境構築
 - ソースコードをダウンロードして、`Android Studio`や`IDEA`で開く
