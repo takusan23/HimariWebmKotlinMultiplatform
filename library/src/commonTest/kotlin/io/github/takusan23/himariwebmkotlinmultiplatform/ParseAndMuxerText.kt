@@ -30,7 +30,9 @@ class ParseAndMuxerText {
         builder.setVideoTrack(videoCodecName, videoWidth, videoHeight)
 
         // 書き込む
-        repeat(10) {
+        builder.writeVideoTrack(byteArray = encodeData, durationMs = 0, isKeyFrame = true)
+        builder.writeAudioTrack(byteArray = encodeData, durationMs = 0, isKeyFrame = true)
+        (1..10).forEach {
             builder.writeVideoTrack(byteArray = encodeData, durationMs = it * 1_000L, isKeyFrame = false)
             builder.writeAudioTrack(byteArray = encodeData, durationMs = it * 1_000L, isKeyFrame = false)
         }
@@ -53,8 +55,8 @@ class ParseAndMuxerText {
         assertEquals(parse.audioTrack?.audioChannelCount, channelCount)
         assertContentEquals(parse.videoTrack?.videoCodec, videoCodecName)
         assertContentEquals(parse.audioTrack?.audioCodec, audioCodecName)
-        assertEquals(parse.videoEncodeData?.size, 11)
-        assertEquals(parse.audioEncodeData?.size, 11)
+        assertEquals(parse.videoEncodeData?.size, 12)
+        assertEquals(parse.audioEncodeData?.size, 12)
     }
 
     @Test

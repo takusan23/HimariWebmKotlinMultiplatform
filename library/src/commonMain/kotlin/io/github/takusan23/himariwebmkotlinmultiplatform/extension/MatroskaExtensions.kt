@@ -14,10 +14,26 @@ internal val ASCII_WEBM = byteArrayOf(0x77, 0x65, 0x62, 0x6d)
 internal val ASCII_OPUS_HEAD = byteArrayOf(0x4f, 0x70, 0x75, 0x73, 0x48, 0x65, 0x61, 0x64)
 
 /** "himariwebm"の ASCII 表現 */
-internal val ASCII_HIMARIWEBM = byteArrayOf(0x68, 0x69, 0x6d, 0x61, 0x72, 0x69, 0x77, 0x65, 0x62, 0x6d)
+internal val ASCII_HIMARIWEBM =
+    byteArrayOf(0x68, 0x69, 0x6d, 0x61, 0x72, 0x69, 0x77, 0x65, 0x62, 0x6d)
 
 /** DataSize の長さが不定の場合の表現 */
-internal val UNKNOWN_DATA_SIZE = byteArrayOf(0x1F.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte())
+internal val UNKNOWN_DATA_SIZE = byteArrayOf(
+    0x1F.toByte(),
+    0xFF.toByte(),
+    0xFF.toByte(),
+    0xFF.toByte(),
+    0xFF.toByte(),
+    0xFF.toByte(),
+    0xFF.toByte(),
+    0xFF.toByte()
+)
+
+/** O_OPUS の ASCII */
+internal val AUDIO_CODEC_OPUS = byteArrayOf(0x41, 0x5f, 0x4f, 0x50, 0x55, 0x53)
+
+/** O_OPUS の ASCII */
+internal val VIDEO_CODEC_VP9 = byteArrayOf(0x56, 0x5f, 0x56, 0x50, 0x39)
 
 /** VINT とバイト数 */
 private val BIT_SIZE_LIST = listOf(
@@ -52,7 +68,8 @@ internal const val SIMPLE_BLOCK_FLAGS_KEYFRAME = 0x80
 internal const val SIMPLE_BLOCK_FLAGS_NONE = 0x00
 
 /** [MatroskaElement]の配列から[MatroskaId]をフィルターする */
-internal fun List<MatroskaElement>.filterId(matroskaId: MatroskaId) = this.filter { it.matroskaId.idByteArray.contentEquals(matroskaId.idByteArray) }
+internal fun List<MatroskaElement>.filterId(matroskaId: MatroskaId) =
+    this.filter { it.matroskaId.idByteArray.contentEquals(matroskaId.idByteArray) }
 
 /**
  * VINT の長さを返す
@@ -99,7 +116,8 @@ internal fun MatroskaId.toEbmlByteArraySize(dataSize: Int): Int {
 
 /** [ByteArray]から[MatroskaId.SpecMatroskaId]を探す。未知の ID の場合は [MatroskaId.UnknownMatroskaId]。 */
 internal fun ByteArray.toMatroskaId(): MatroskaId {
-    return SpecMatroskaId.entries.firstOrNull { it.idByteArray.contentEquals(this) } ?: UnknownMatroskaId(this)
+    return SpecMatroskaId.entries.firstOrNull { it.idByteArray.contentEquals(this) }
+        ?: UnknownMatroskaId(this)
 }
 
 /** [ByteArray]が入っている[List]を、全部まとめて[ByteArray]にする */
@@ -181,7 +199,8 @@ internal fun List<EncodeData>.toClusterSize(): Int {
     val timestampSize = SpecMatroskaId.Timestamp.toEbmlByteArraySize(time.toByteArray().size)
     // SimpleBlock はサイズだけ
     // SimpleBlock は先頭 4 バイト埋める必要があるため、4 足す
-    val allSimpleBlockSize = this.sumOf { SpecMatroskaId.SimpleBlock.toEbmlByteArraySize(it.encodeDataSize + 4) }
+    val allSimpleBlockSize =
+        this.sumOf { SpecMatroskaId.SimpleBlock.toEbmlByteArraySize(it.encodeDataSize + 4) }
     // Cluster
     return SpecMatroskaId.Cluster.toEbmlByteArraySize(timestampSize + allSimpleBlockSize)
 }
@@ -249,21 +268,22 @@ internal fun ByteArray.analyzeUnknownDataSizeForSegmentData(): Int {
         // DataSize を取り出す
         val dataSizeLength = this[index].getElementLength()
         // Cluster の場合は長さ不定の場合があるため、追加処理
-        val dataSizeElement = this.copyOfRange(index, index + dataSizeLength).getDataSize().let { dataSizeOrUnknown ->
-            // 長さが求まっていればそれを使う
-            if (dataSizeOrUnknown != -1) {
-                return@let dataSizeOrUnknown
-            }
+        val dataSizeElement =
+            this.copyOfRange(index, index + dataSizeLength).getDataSize().let { dataSizeOrUnknown ->
+                // 長さが求まっていればそれを使う
+                if (dataSizeOrUnknown != -1) {
+                    return@let dataSizeOrUnknown
+                }
 
-            // Cluster は上から舐めて求められる
-            val dataByteArray = this.copyOfRange(index + UNKNOWN_DATA_SIZE.size, this.size)
-            if (idElement.toMatroskaId() == SpecMatroskaId.Cluster) {
-                // Cluster の長さ不定は求められる、再帰で求める。Data を渡す
-                dataByteArray.analyzeUnknownDataSizeForClusterData()
-            } else {
-                throw RuntimeException("長さ不定")
+                // Cluster は上から舐めて求められる
+                val dataByteArray = this.copyOfRange(index + UNKNOWN_DATA_SIZE.size, this.size)
+                if (idElement.toMatroskaId() == SpecMatroskaId.Cluster) {
+                    // Cluster の長さ不定は求められる、再帰で求める。Data を渡す
+                    dataByteArray.analyzeUnknownDataSizeForClusterData()
+                } else {
+                    throw RuntimeException("長さ不定")
+                }
             }
-        }
 
         // DataSize 分足していく
         index += dataSizeLength
